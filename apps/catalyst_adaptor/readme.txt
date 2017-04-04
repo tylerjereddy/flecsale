@@ -19,6 +19,25 @@ NOTE: Paraview 5.2.0 is required for this.
 
 	Src to build from: http://www.paraview.org/files/v5.2/ParaView-v5.2.0.tar.gz
 
+	To build paraview locally, use this script:
+		#!/bin/bash
+		wget http://www.paraview.org/files/v5.2/ParaView-v5.2.0.tar.gz
+
+
+		# Paraview
+		tar -zxf ParaView-v5.2.0.tar.gz
+		mkdir ParaView-v5.2.0/build/
+		cd ParaView-v5.2.0/build/
+		cmake .. -DPARAVIEW_USE_MPI:BOOL=ON -DPARAVIEW_ENABLE_PYTHON:BOOL=ON
+
+		make -j32
+		cd ..
+		cd ..
+
+	To build ParaView remotely on a server (e.g. Darwin), use the buildParaviewRemote.sh script
+
+	The Paraview path required is in cmake is that of the build folder in the Paraview build. 
+
 
 --------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------
