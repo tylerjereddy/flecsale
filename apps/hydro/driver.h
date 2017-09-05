@@ -242,11 +242,10 @@ int driver(int argc, char** argv)
     //);
 
     // FleCSI does not yet support Future handling
-    // auto global_future =
-    //	flecsi::execution::context_t::instance().reduce_min(local_future);
-    //flecsi::execution::flecsi_future__<mesh_t::real_t> *flecsi_future_time_step =
-    //    &global_future;
-    mesh_t::real_t hacked_time_step = 1.0e-4;
+    auto global_future =
+    	flecsi::execution::context_t::instance().reduce_min(local_future);
+    flecsi::execution::flecsi_future__<mesh_t::real_t> *flecsi_future_time_step =
+        &global_future;
 
     //-------------------------------------------------------------------------
     // try a timestep
@@ -256,9 +255,8 @@ int driver(int argc, char** argv)
       flecsi_execute_task( evaluate_fluxes, single, mesh, d, v, e, p, T, a, F );
  
     // Loop over each cell, scattering the fluxes to the cell
-    f = flecsi_execute_task( 
-      //apply_update, single, mesh, inputs_t::eos, flecsi_future_time_step, F, d, v, e, p, T, a
-      apply_update, single, mesh, inputs_t::eos, hacked_time_step, F, d, v, e, p, T, a
+    auto f2 = flecsi_execute_task( 
+      apply_update, single, mesh, inputs_t::eos, flecsi_future_time_step, F, d, v, e, p, T, a
     );
 
     //-------------------------------------------------------------------------
@@ -269,9 +267,7 @@ int driver(int argc, char** argv)
                                    // acceptable to wait on global reduction and we can
                                    // silence the warnings this would produce.
     size_t index = 0;
-    // This is where future_step_step should be evaluated
-    // mesh_t::real_t future_time_step = flecsi_future_time_step->get(index, silence_warnings);
-    mesh_t::real_t future_time_step = hacked_time_step;
+    mesh_t::real_t future_time_step = flecsi_future_time_step->get(index, silence_warnings);
 
     soln_time += future_time_step;
     time_cnt++;
