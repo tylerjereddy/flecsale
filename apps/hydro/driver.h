@@ -136,9 +136,6 @@ int driver(int argc, char** argv)
   // Mesh Setup
   //===========================================================================
 
-  // start a clock
-  auto tstart = utils::get_wall_time();
-
   // get the client handle 
   auto mesh = flecsi_get_client_handle(mesh_t, meshes, mesh0);
  
@@ -208,18 +205,19 @@ int driver(int argc, char** argv)
   if (has_output) {
     auto name = prefix + "_" + apps::common::zero_padded( 0 ) + ".exo";
     auto name_char = utils::to_trivial_string( name );
-    auto f =
-      flecsi_execute_task(output, single, mesh, name_char, d, v, e, p, T, a);
-    f.wait();
+    flecsi_execute_task(output, single, mesh, name_char, d, v, e, p, T, a);
   }
 
 
   // dump connectivity
-  {
-    auto name = utils::to_trivial_string( prefix+".txt" );
-    auto f = flecsi_execute_task(print, single, mesh, name);
-    f.wait();
-  }
+  auto name = utils::to_trivial_string( prefix+".txt" );
+  auto f = flecsi_execute_task(print, single, mesh, name);
+  
+  // this wait forces synchronization before we start the clock!!!
+  f.wait(); 
+
+  // start a clock
+  auto tstart = utils::get_wall_time();
 
   //===========================================================================
   // Residual Evaluation
@@ -241,9 +239,17 @@ int driver(int argc, char** argv)
       evaluate_time_step, single, mesh, d, v, e, p, T, a
     );
 
-    auto time_step =
-	flecsi::execution::context_t::instance().reduce_min(local_future);
-    time_step *= inputs_t::CFL;
+    auto time_step_future =
+      flecsi::execution::context_t::instance().reduce_min(local_future);
+
+    //-------------------------------------------------------------------------
+    // try a timestep
+    
+    // compute the fluxes
+    flecsi_execute_task( evaluate_fluxes, single, mesh, d, v, e, p, T, a, F );
+
+    // now i need the time step
+    auto time_step = time_step_future.get() * inputs_t::CFL;
 
     // access the computed time step and make sure its not too large
     time_step = std::min( time_step, inputs_t::final_time - soln_time );       
@@ -262,19 +268,10 @@ int driver(int argc, char** argv)
       cout.precision(ss);
     }
 
-    //-------------------------------------------------------------------------
-    // try a timestep
-    
-    // compute the fluxes
-    auto f1 = 
-      flecsi_execute_task( evaluate_fluxes, single, mesh, d, v, e, p, T, a, F );
-    f1.wait();
-
     // Loop over each cell, scattering the fluxes to the cell
-    auto f2 = flecsi_execute_task( 
+    flecsi_execute_task( 
       apply_update, single, mesh, inputs_t::eos, time_step, F, d, v, e, p, T, a
     );
-    f2.wait();
 
     //-------------------------------------------------------------------------
     // Post-process
@@ -303,8 +300,7 @@ int driver(int argc, char** argv)
     {
       auto name = prefix + "_" + apps::common::zero_padded( time_cnt ) + ".exo";
       auto name_char = utils::to_trivial_string( name );
-      auto f = flecsi_execute_task(output, single, mesh, name_char, d, v, e, p, T, a);
-      f.wait();
+      flecsi_execute_task(output, single, mesh, name_char, d, v, e, p, T, a);
     }
 
 
