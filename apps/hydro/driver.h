@@ -35,60 +35,10 @@ flecsi_register_data_client(mesh_t, meshes, mesh0);
 flecsi_register_field(
   mesh_t, 
   hydro,  
-  density,   
-  mesh_t::real_t, 
+  state,   
+  state_data_t, 
   dense, 
   1, 
-  mesh_t::index_spaces_t::cells
-);
-
-flecsi_register_field(
-  mesh_t, 
-  hydro, 
-  velocity,
-  mesh_t::vector_t,
-  dense,
-  1,
-  mesh_t::index_spaces_t::cells
-);
-
-flecsi_register_field(
-  mesh_t, 
-  hydro,
-  internal_energy,
-  mesh_t::real_t,
-  dense,
-  1,
-  mesh_t::index_spaces_t::cells
-);
-
-flecsi_register_field(
-  mesh_t, 
-  hydro, 
-  pressure,
-  mesh_t::real_t, 
-  dense, 
-  1, 
-  mesh_t::index_spaces_t::cells
-);
-
-flecsi_register_field(
-  mesh_t,
-  hydro,
-  temperature,
-  mesh_t::real_t,
-  dense,
-  1,
-  mesh_t::index_spaces_t::cells
-);
-
-flecsi_register_field(
-  mesh_t,
-  hydro,
-  sound_speed,
-  mesh_t::real_t,
-  dense,
-  1,
   mesh_t::index_spaces_t::cells
 );
 
@@ -157,17 +107,7 @@ int driver(int argc, char** argv)
   // Access what we need
   //===========================================================================
   
-  auto d  = flecsi_get_handle(mesh, hydro,  density,   real_t, dense, 0);
-  //auto d0 = flecsi_get_handle(mesh, hydro,  density,   real_t, dense, 1);
-  auto v  = flecsi_get_handle(mesh, hydro, velocity, vector_t, dense, 0);
-  //auto v0 = flecsi_get_handle(mesh, hydro, velocity, vector_t, dense, 1);
-  auto e  = flecsi_get_handle(mesh, hydro, internal_energy, real_t, dense, 0);
-  //auto e0 = flecsi_get_handle(mesh, hydro, internal_energy, real_t, dense, 1);
-
-  auto p  = flecsi_get_handle(mesh, hydro,        pressure,   real_t, dense, 0);
-  auto T  = flecsi_get_handle(mesh, hydro,     temperature, real_t, dense, 0);
-  auto a  = flecsi_get_handle(mesh, hydro,     sound_speed, real_t, dense, 0);
-
+  auto U  = flecsi_get_handle(mesh, hydro, state, state_data_t, dense, 0);
   auto F = flecsi_get_handle(mesh, hydro, flux, flux_data_t, dense, 0);
 
   //===========================================================================
@@ -188,7 +128,7 @@ int driver(int argc, char** argv)
     inputs_t::ics,
     inputs_t::eos,
     soln_time,
-    d, v, e, p, T, a
+    U
   );
 
   #ifdef HAVE_CATALYST
@@ -205,7 +145,7 @@ int driver(int argc, char** argv)
   if (has_output) {
     auto name = prefix + "_" + apps::common::zero_padded( 0 ) + ".exo";
     auto name_char = utils::to_trivial_string( name );
-    flecsi_execute_task(output, single, mesh, name_char, d, v, e, p, T, a);
+    flecsi_execute_task(output, single, mesh, name_char, U);
   }
 
 
@@ -236,7 +176,7 @@ int driver(int argc, char** argv)
     // compute the time step
     
     auto local_future = flecsi_execute_task( 
-      evaluate_time_step, single, mesh, d, v, e, p, T, a
+      evaluate_time_step, single, mesh, U
     );
 
     auto time_step_future =
@@ -246,7 +186,7 @@ int driver(int argc, char** argv)
     // try a timestep
     
     // compute the fluxes
-    flecsi_execute_task( evaluate_fluxes, single, mesh, d, v, e, p, T, a, F );
+    flecsi_execute_task( evaluate_fluxes, single, mesh, U, F );
 
     // now i need the time step
     auto time_step = time_step_future.get() * inputs_t::CFL;
@@ -270,7 +210,7 @@ int driver(int argc, char** argv)
 
     // Loop over each cell, scattering the fluxes to the cell
     flecsi_execute_task( 
-      apply_update, single, mesh, inputs_t::eos, time_step, F, d, v, e, p, T, a
+      apply_update, single, mesh, inputs_t::eos, time_step, F, U
     );
 
     //-------------------------------------------------------------------------
@@ -300,7 +240,7 @@ int driver(int argc, char** argv)
     {
       auto name = prefix + "_" + apps::common::zero_padded( time_cnt ) + ".exo";
       auto name_char = utils::to_trivial_string( name );
-      flecsi_execute_task(output, single, mesh, name_char, d, v, e, p, T, a);
+      flecsi_execute_task(output, single, mesh, name_char, U);
     }
 
 

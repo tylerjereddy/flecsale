@@ -82,6 +82,9 @@ using eqns__ = typename eqns::euler_eqns_t<real_t, N>;
 template< std::size_t N >
 using flux_data__ = typename eqns__<N>::flux_data_t;
 
+template< std::size_t N >
+using state_data__ = typename eqns__<N>::state_data_t;
+
 // explicitly use some other stuff
 using std::cout;
 using std::cerr;

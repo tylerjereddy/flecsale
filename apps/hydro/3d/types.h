@@ -19,6 +19,7 @@ using mesh_t = mesh__<3>;
 
 // type aliases
 using flux_data_t = flux_data__<mesh_t::num_dimensions>;
+using state_data_t = state_data__<mesh_t::num_dimensions>;
 
 } // namespace 
 } // namespace
