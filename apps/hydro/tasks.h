@@ -95,22 +95,33 @@ mesh_t::real_t evaluate_time_step(
 
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
-//! \brief The main task to evaluate fluxes at each face.
+//! \brief The main task to update the solution in each cell.
 //!
 //! \param [in,out] mesh the mesh object
 //! \return 0 for success
 ////////////////////////////////////////////////////////////////////////////////
-void evaluate_fluxes( 
+void apply_update( 
   client_handle_r__<mesh_t> mesh,
-  dense_handle_r__<state_data_t> U,
-  dense_handle_w__<flux_data_t> flux
+  eos_t eos,
+  mesh_t::real_t delta_t,
+  dense_handle_rw__<state_data_t> U
 ) {
 
   // type aliases
-  using eqns_t = eqns__< mesh_t::num_dimensions >;
+  using eqns_t = eqns__<mesh_t::num_dimensions>;
   
-  for ( auto f : mesh.faces( flecsi::owned ) ) 
+  //----------------------------------------------------------------------------
+  // Evaluate the face flux
+
+  // get the faces
+  const auto & faces = mesh.faces();
+
+  // temporary storage for face values
+  std::vector< flux_data_t > flux( faces.size() );
+  
+  for ( auto f : faces ) 
   {
     
     // get the cell neighbors
@@ -125,37 +136,18 @@ void evaluate_fluxes(
     // interior cell
     if ( num_cells == 2 ) {
       const auto & w_right = U( cells[1] );
-      flux(f) = flux_function<eqns_t>( w_left, w_right, f->normal() );
+      flux[f] = flux_function<eqns_t>( w_left, w_right, f->normal() );
     } 
     // boundary cell
     else {
-      flux(f) = boundary_flux<eqns_t>( w_left, f->normal() );
+      flux[f] = boundary_flux<eqns_t>( w_left, f->normal() );
     }
    
     // scale the flux by the face area
-    flux(f) *= f->area();
+    flux[f] *= f->area();
 
   } // for
-  //----------------------------------------------------------------------------
 
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//! \brief The main task to update the solution in each cell.
-//!
-//! \param [in,out] mesh the mesh object
-//! \return 0 for success
-////////////////////////////////////////////////////////////////////////////////
-void apply_update( 
-  client_handle_r__<mesh_t> mesh,
-  eos_t eos,
-  mesh_t::real_t delta_t,
-  dense_handle_r__<flux_data_t> flux,
-  dense_handle_rw__<state_data_t> U
-) {
-
-  // type aliases
-  using eqns_t = eqns__<mesh_t::num_dimensions>;
 
   //----------------------------------------------------------------------------
   // Loop over each cell, scattering the fluxes to the cell
@@ -175,9 +167,9 @@ void apply_update(
 
       // add the contribution to this cell only
       if ( neigh[0] == c )
-        delta_u -= flux(f);
+        delta_u -= flux[f];
       else
-        delta_u += flux(f);
+        delta_u += flux[f];
 
     } // edge
 
@@ -264,7 +256,6 @@ void print(
 
 flecsi_register_task(initial_conditions, loc, single|flecsi::leaf);
 flecsi_register_task(evaluate_time_step, loc, single|flecsi::leaf);
-flecsi_register_task(evaluate_fluxes, loc, single|flecsi::leaf);
 flecsi_register_task(apply_update, loc, single|flecsi::leaf);
 flecsi_register_task(output, loc, single|flecsi::leaf);
 flecsi_register_task(print, loc, single|flecsi::leaf);

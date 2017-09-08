@@ -42,18 +42,6 @@ flecsi_register_field(
   mesh_t::index_spaces_t::cells
 );
 
-// Here I am regestering a struct as the stored data
-// type since I will only ever be accesissing all the data at once.
-flecsi_register_field(
-  mesh_t, 
-  hydro, 
-  flux, 
-  flux_data_t, 
-  dense, 
-  1,
-  mesh_t::index_spaces_t::faces
-);
-
 ///////////////////////////////////////////////////////////////////////////////
 //! \brief A sample test of the hydro solver
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,7 +96,6 @@ int driver(int argc, char** argv)
   //===========================================================================
   
   auto U  = flecsi_get_handle(mesh, hydro, state, state_data_t, dense, 0);
-  auto F = flecsi_get_handle(mesh, hydro, flux, flux_data_t, dense, 0);
 
   //===========================================================================
   // Initial conditions
@@ -185,9 +172,6 @@ int driver(int argc, char** argv)
     //-------------------------------------------------------------------------
     // try a timestep
     
-    // compute the fluxes
-    flecsi_execute_task( evaluate_fluxes, single, mesh, U, F );
-
     // now i need the time step
     auto time_step = time_step_future.get() * inputs_t::CFL;
 
@@ -210,7 +194,7 @@ int driver(int argc, char** argv)
 
     // Loop over each cell, scattering the fluxes to the cell
     flecsi_execute_task( 
-      apply_update, single, mesh, inputs_t::eos, time_step, F, U
+      apply_update, single, mesh, inputs_t::eos, time_step, U
     );
 
     //-------------------------------------------------------------------------
