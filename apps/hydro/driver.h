@@ -14,7 +14,7 @@
 
 // user includes
 //#include <flecsale/mesh/mesh_utils.h>
-#include <flecsi/execution/future.h>
+//#include <flecsi/execution/future.h>
 #include <flecsale/utils/time_utils.h>
 #include <flecsale/io/catalyst/adaptor.h>
 
@@ -136,9 +136,6 @@ int driver(int argc, char** argv)
   // Mesh Setup
   //===========================================================================
 
-  // start a clock
-  auto tstart = utils::get_wall_time();
-
   // get the client handle 
   auto mesh = flecsi_get_client_handle(mesh_t, meshes, mesh0);
  
@@ -210,14 +207,18 @@ int driver(int argc, char** argv)
     auto name_char = utils::to_trivial_string( name );
     auto f =
       flecsi_execute_task(output, single, mesh, name_char, d, v, e, p, T, a);
+    f.wait();
   }
 
 
   // dump connectivity
-  {
+  
     auto name = utils::to_trivial_string( prefix+".txt" );
     auto f = flecsi_execute_task(print, single, mesh, name);
-  }
+    f.wait();
+
+  // start a clock
+  auto tstart = utils::get_wall_time();
 
   //===========================================================================
   // Residual Evaluation
@@ -235,17 +236,17 @@ int driver(int argc, char** argv)
     //-------------------------------------------------------------------------
     // compute the time step
 
-    auto local_future = flecsi_execute_task( 
-      evaluate_time_step, single, mesh, d, v, e, p, T, a,
-      inputs_t::CFL, inputs_t::final_time - soln_time
-    );
+    //auto local_future = flecsi_execute_task( 
+      //evaluate_time_step, single, mesh, d, v, e, p, T, a,
+      //inputs_t::CFL, inputs_t::final_time - soln_time
+    //);
 
     // FleCSI does not yet support Future handling
     // auto global_future =
     //	flecsi::execution::context_t::instance().reduce_min(local_future);
     //flecsi::execution::flecsi_future__<mesh_t::real_t> *flecsi_future_time_step =
     //    &global_future;
-    mesh_t::real_t hacked_time_step = 1.0e-3;
+    mesh_t::real_t hacked_time_step = 1.0e-4;
 
     //-------------------------------------------------------------------------
     // try a timestep
@@ -255,7 +256,7 @@ int driver(int argc, char** argv)
       flecsi_execute_task( evaluate_fluxes, single, mesh, d, v, e, p, T, a, F );
  
     // Loop over each cell, scattering the fluxes to the cell
-    auto f2 = flecsi_execute_task( 
+    f = flecsi_execute_task( 
       //apply_update, single, mesh, inputs_t::eos, flecsi_future_time_step, F, d, v, e, p, T, a
       apply_update, single, mesh, inputs_t::eos, hacked_time_step, F, d, v, e, p, T, a
     );
@@ -274,7 +275,7 @@ int driver(int argc, char** argv)
 
     soln_time += future_time_step;
     time_cnt++;
-
+#if 0
     // output the time step
     if ( rank == 0 ) {
       cout << std::string(80, '=') << endl;
@@ -314,11 +315,12 @@ int driver(int argc, char** argv)
 
 
   }
-
+#endif
   //===========================================================================
   // Post-process
   //===========================================================================
     
+    f.wait();
   auto tdelta = utils::get_wall_time() - tstart;
 
   if ( rank == 0 ) {
