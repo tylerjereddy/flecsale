@@ -236,10 +236,10 @@ int driver(int argc, char** argv)
     //-------------------------------------------------------------------------
     // compute the time step
 
-    //auto local_future = flecsi_execute_task( 
-      //evaluate_time_step, single, mesh, d, v, e, p, T, a,
-      //inputs_t::CFL, inputs_t::final_time - soln_time
-    //);
+    auto local_future = flecsi_execute_task( 
+      evaluate_time_step, single, mesh, d, v, e, p, T, a,
+      inputs_t::CFL, inputs_t::final_time - soln_time
+    );
 
     // FleCSI does not yet support Future handling
     auto global_future =
@@ -255,7 +255,7 @@ int driver(int argc, char** argv)
       flecsi_execute_task( evaluate_fluxes, single, mesh, d, v, e, p, T, a, F );
  
     // Loop over each cell, scattering the fluxes to the cell
-    auto f2 = flecsi_execute_task( 
+    f = flecsi_execute_task( 
       apply_update, single, mesh, inputs_t::eos, flecsi_future_time_step, F, d, v, e, p, T, a
     );
 
