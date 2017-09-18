@@ -346,8 +346,8 @@ void partition_mesh( char_array_t filename )
   // figure out this ranks file name
   auto basename = utils::basename( filename_string );
   auto output_prefix = utils::remove_extension( basename );
-  auto output_filename = output_prefix + "-partition_rank" +
-    apps::common::zero_padded(rank) + ".exo";
+ // auto output_filename = output_prefix + "-partition_rank" +
+ //   apps::common::zero_padded(rank) + ".exo";
 
   // a lamda function to convert sets of entitiy_info_t's to vectors
   // of ids
@@ -364,10 +364,11 @@ void partition_mesh( char_array_t filename )
   const auto & vertices = entities[0];
 
   // open the exodus file
-  if ( rank == 0 )
-    std::cout << "Writing mesh to: " << output_filename << std::endl;
+  //if ( rank == 0 )
+    //std::cout << "Writing mesh to: " << output_filename << std::endl;
 
   using std::make_pair;
+#if 0
   mesh_def.write(
     output_filename,
     { 
@@ -381,7 +382,7 @@ void partition_mesh( char_array_t filename )
       make_pair( "ghost vertices", to_vec(vertices.ghost) )
     }
   );
-
+#endif
   clog(info) << "Finished mesh partitioning." << std::endl;
 
 
@@ -430,17 +431,17 @@ void initialize_mesh(
   // figure out this ranks file name
   auto basename = utils::basename( filename_string );
   auto output_prefix = utils::remove_extension( basename );
-  auto output_filename = output_prefix + "-connectivity_rank" +
-    apps::common::zero_padded(rank) + ".txt";
+  //auto output_filename = output_prefix + "-connectivity_rank" +
+    //apps::common::zero_padded(rank) + ".txt";
 
   // dump to file
-  if ( rank == 0 )
-    std::cout << "Dumping connectivity to: " << output_filename << std::endl;
-  std::ofstream file( output_filename );
-  mesh.dump( file );
+  //if ( rank == 0 )
+    //std::cout << "Dumping connectivity to: " << output_filename << std::endl;
+  //std::ofstream file( output_filename );
+  //mesh.dump( file );
 
   // close file
-  file.close();
+  //file.close();
 
 }
 
