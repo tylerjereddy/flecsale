@@ -288,14 +288,14 @@ void output(
 
   // figure out this ranks file name
   auto name_and_ext = utils::split_extension( filename.str() );
-  auto output_filename = 
-    name_and_ext.first + "_rank" + apps::common::zero_padded(rank) +
-    "." + name_and_ext.second;
+  //auto output_filename = 
+    //name_and_ext.first + "_rank" + apps::common::zero_padded(rank) +
+    //"." + name_and_ext.second;
 
   // now outut the mesh
-  flecsale::io::io_exodus__<mesh_t>::write(
-    output_filename, mesh, &d //, v, e, p, T, a
-  );
+  //flecsale::io::io_exodus__<mesh_t>::write(
+    //output_filename, mesh, &d //, v, e, p, T, a
+  //);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -314,17 +314,17 @@ void print(
  
   // figure out this ranks file name
   auto name_and_ext = utils::split_extension( filename.str() );
-  auto output_filename = 
-    name_and_ext.first + "_rank" + apps::common::zero_padded(rank) +
-    "." + name_and_ext.second;
+  //auto output_filename = 
+    //name_and_ext.first + "_rank" + apps::common::zero_padded(rank) +
+    //"." + name_and_ext.second;
 
   // dump to file
-  std::cout << "Dumping connectivity to: " << output_filename << std::endl;
-  std::ofstream file( output_filename );
-  mesh.dump( file );
+  //std::cout << "Dumping connectivity to: " << output_filename << std::endl;
+  //std::ofstream file( output_filename );
+  //mesh.dump( file );
 
   // close file
-  file.close();
+  //file.close();
   
 }
 
