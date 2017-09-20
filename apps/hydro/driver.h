@@ -218,7 +218,7 @@ int driver(int argc, char** argv)
     f.wait();
 
   // start a clock
-  auto tstart = utils::get_wall_time();
+  double tstart;
 
   //===========================================================================
   // Residual Evaluation
@@ -260,6 +260,12 @@ int driver(int argc, char** argv)
       //apply_update, single, mesh, inputs_t::eos, flecsi_future_time_step, F, d, v, e, p, T, a
       apply_update, single, mesh, inputs_t::eos, hacked_time_step, F, d, v, e, p, T, a
     );
+    // Be triply-sure that timing doesn't start until everyone is timestepping
+    if (num_steps == 0) {
+      f.wait();
+      tstart = utils::get_wall_time();
+    }
+
 
     //-------------------------------------------------------------------------
     // Post-process
