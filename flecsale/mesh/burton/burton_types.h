@@ -53,9 +53,6 @@ struct burton_2d_types_base
   //! The number of domains in burton mesh picked up from burton_config_t.
   static constexpr size_t num_domains = config_t::num_domains;
 
-  //! the flecsi mesh topology type
-  using mesh_topology_base_t = typename config_t::mesh_topology_base_t;
-
   //! the base type for the entities
   using mesh_entity_base_t = typename config_t::mesh_entity_base_t;
 
@@ -87,6 +84,23 @@ struct burton_2d_types_base
       cells_to_vertices,
       cells_to_edges,
       cells_to_faces = cells_to_edges,
+      // index spaces for second domain
+      vertices_to_corners,
+      vertices_to_wedges,
+      edges_to_corners,
+      edges_to_wedges,
+      faces_to_corners = edges_to_corners,
+      faces_to_wedges = edges_to_wedges,
+      cells_to_corners,
+      cells_to_wedges,
+      corners_to_vertices,
+      corners_to_edges,
+      corners_to_faces = corners_to_edges,
+      corners_to_cells,
+      wedges_to_vertices,
+      wedges_to_edges,
+      wedges_to_faces = wedges_to_edges,
+      wedges_to_cells,
       // index spaces that are not used
       edges_to_faces = 7777,
       faces_to_edges = 7777
@@ -154,10 +168,13 @@ struct burton_2d_types_base
   //! \tparam M The domain index.
   //! \tparam D The dimensional index.
   //============================================================================
-  template<size_t M, size_t D>
+  template<size_t M, size_t D, typename MESH_TOPOLOGY>
   static constexpr 
   mesh_entity_base_t *
-  create_entity(mesh_topology_base_t* mesh, size_t num_vertices, const id_t & id) 
+  create_entity(
+    MESH_TOPOLOGY * mesh,
+    size_t num_vertices,
+    const id_t & id = {}) 
   {
     switch(M){
       //---------- Primal Mesh ----------//
@@ -241,36 +258,32 @@ struct burton_types_t<2, true> : public burton_2d_types_base
 
   //! Connectivities are adjacencies of entities within a single domain.
   flecsi_register_connectivities(
-    flecsi_connectivity( index_spaces_t::vertices_to_edges, 0, vertex_t, edge_t ),
-    flecsi_connectivity( index_spaces_t::vertices_to_cells, 0, vertex_t, cell_t ),
-    flecsi_connectivity( index_spaces_t::edges_to_vertices, 0, edge_t, vertex_t ),
-    flecsi_connectivity( index_spaces_t::edges_to_cells,    0, edge_t, cell_t ),
-    flecsi_connectivity( index_spaces_t::cells_to_vertices, 0, cell_t, vertex_t ),
-    flecsi_connectivity( index_spaces_t::cells_to_edges,    0, cell_t, edge_t )
+    flecsi_connectivity( index_spaces_t::vertices_to_edges, 0, vertex_t,   edge_t ),
+    flecsi_connectivity( index_spaces_t::vertices_to_cells, 0, vertex_t,   cell_t ),
+    flecsi_connectivity( index_spaces_t::edges_to_vertices, 0,   edge_t, vertex_t ),
+    flecsi_connectivity( index_spaces_t::edges_to_cells,    0,   edge_t,   cell_t ),
+    flecsi_connectivity( index_spaces_t::cells_to_vertices, 0,   cell_t, vertex_t ),
+    flecsi_connectivity( index_spaces_t::cells_to_edges,    0,   cell_t,   edge_t )
   );
 
   //! Bindings are adjacencies of entities across two domains.
-  flecsi_register_bindings();
-#if 0
-     // corners
-     std::tuple<index_space_<12>, domain_<0>, domain_<1>, cell_t,   corner_t>,
-     std::tuple<index_space_<13>, domain_<0>, domain_<1>, edge_t,   corner_t>,
-     std::tuple<index_space_<14>, domain_<0>, domain_<1>, vertex_t, corner_t>,
-     std::tuple<index_space_<15>, domain_<1>, domain_<0>, corner_t,   cell_t>,
-     std::tuple<index_space_<16>, domain_<1>, domain_<0>, corner_t,   edge_t>,
-     std::tuple<index_space_<17>, domain_<1>, domain_<0>, corner_t, vertex_t>,
-     // wedges
-     std::tuple<index_space_<18>, domain_<0>, domain_<1>, cell_t,    wedge_t>,
-     std::tuple<index_space_<19>, domain_<0>, domain_<1>, edge_t,    wedge_t>,
-     std::tuple<index_space_<20>, domain_<0>, domain_<1>, vertex_t,  wedge_t>,
-     std::tuple<index_space_<21>, domain_<1>, domain_<0>, wedge_t,    cell_t>,
-     std::tuple<index_space_<22>, domain_<1>, domain_<0>, wedge_t,    edge_t>,
-     std::tuple<index_space_<23>, domain_<1>, domain_<0>, wedge_t,  vertex_t>,
+  flecsi_register_bindings(
+     flecsi_binding( index_spaces_t::vertices_to_corners, 0, 1, vertex_t, corner_t ),
+     flecsi_binding( index_spaces_t::vertices_to_wedges,  0, 1, vertex_t,  wedge_t ),
+     flecsi_binding( index_spaces_t::edges_to_corners,    0, 1,   edge_t, corner_t ),
+     flecsi_binding( index_spaces_t::edges_to_wedges,     0, 1,   edge_t,  wedge_t ),
+     flecsi_binding( index_spaces_t::cells_to_corners,    0, 1,   cell_t, corner_t ),
+     flecsi_binding( index_spaces_t::cells_to_wedges,     0, 1,   cell_t,  wedge_t ),
+     flecsi_binding( index_spaces_t::corners_to_vertices, 1, 0, corner_t, vertex_t ),
+     flecsi_binding( index_spaces_t::corners_to_edges,    1, 0, corner_t,   edge_t ),
+     flecsi_binding( index_spaces_t::corners_to_cells,    1, 0, corner_t,   cell_t ),
+     flecsi_binding( index_spaces_t::wedges_to_vertices,  1, 0,  wedge_t, vertex_t ),
+     flecsi_binding( index_spaces_t::wedges_to_edges,     1, 0,  wedge_t,   edge_t ),
+     flecsi_binding( index_spaces_t::wedges_to_cells,     1, 0,  wedge_t,   cell_t )
      // corner <-> wedges
-     std::tuple<index_space_<24>, domain_<1>, domain_<1>,  wedge_t,  corner_t>,
-     std::tuple<index_space_<25>, domain_<1>, domain_<1>,  corner_t, wedge_t>
+     //flecsi_binding( index_spaces_t::, 1, 1,  wedge_t,  corner_t ),
+     //flecsi_binding( index_spaces_t::, 1, 1,  corner_t,  wedge_t )
   );
-#endif
 
 };
 
@@ -298,9 +311,6 @@ struct burton_3d_types_base
   //! the shape type
   using shape_t = config_t::shape_t;
 
-  //! the flecsi mesh topology type
-  using mesh_topology_base_t = typename config_t::mesh_topology_base_t;
-  
   //! the base type for the entities
   using mesh_entity_base_t = typename config_t::mesh_entity_base_t;
 
@@ -405,9 +415,10 @@ struct burton_3d_types_base
   //! \brief depending upon the dimension/number of verices, create different 
   //!   types of face entities
   //============================================================================  
+  template< typename MESH_TOPOLOGY >
   static
   mesh_entity_base_t *
-  create_face(mesh_topology_base_t* mesh, size_t num_vertices, const id_t & id)
+  create_face(MESH_TOPOLOGY * mesh, size_t num_vertices, const id_t & id)
   {
     auto face_type = shape_t::polygon;
     switch(num_vertices) {
@@ -428,10 +439,10 @@ struct burton_3d_types_base
   //! \tparam M The domain index.
   //! \tparam D The dimensional index.
   //============================================================================
-  template<size_t M, size_t D>
+  template<size_t M, size_t D, typename MESH_TOPOLOGY>
   static constexpr 
   mesh_entity_base_t *
-  create_entity(mesh_topology_base_t* mesh, size_t num_vertices, const id_t & id) 
+  create_entity(MESH_TOPOLOGY * mesh, size_t num_vertices, const id_t & id) 
   {
     switch(M){
       //---------- Primal Mesh ----------//

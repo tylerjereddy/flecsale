@@ -242,15 +242,16 @@ void evaluate_nodal_state(
   dense_handle_w__<mesh_t::vector_t> Fpc
 ) {
 
-  // type aliases
-  using real_t = typename T::real_t;
-  using vector_t = typename T::vector_t;
-  using matrix_t = matrix_t< T::num_dimensions >; 
-  using flux_data_t = flux_data_t<T::num_dimensions>;
-  using eqns_t = eqns_t<T::num_dimensions>;
 
   // get the number of dimensions and create a matrix
-  constexpr auto num_dims = T::num_dimensions;
+  constexpr auto num_dims = mesh_t::num_dimensions;
+
+  // type aliases
+  using real_t = mesh_t::real_t;
+  using vector_t = mesh_t::vector_t;
+  using matrix_t = matrix__< num_dims >; 
+  using flux_data_t = flux_data__<num_dims>;
+  using eqns_t = eqns__<num_dims>;
 
 
 
@@ -259,7 +260,6 @@ void evaluate_nodal_state(
   //----------------------------------------------------------------------------
 
   for ( auto vt : mesh.vertices( flecsi::owned ) ) {
-#if 0
 
     // create the final matrix the point
     matrix_t Mp(0);
@@ -272,6 +272,7 @@ void evaluate_nodal_state(
     // create some corner storage
     std::vector< matrix_t > Mpc(num_corners, 0);
 
+#if 0
     //--------------------------------------------------------------------------
     // build point matrix
     for ( int j=0; j<num_corners; ++j ) {

@@ -366,6 +366,25 @@ void partition_mesh( char_array_t filename )
     }
   }
 
+  //----------------------------------------------------------------------------
+  // add adjacency information For Corners/Wedges
+  //----------------------------------------------------------------------------
+  
+  adj_corners_to_vertices += num_corners;
+  adj_corners_to_edges += 2*num_corners;
+  adj_corners_to_cells += num_corners;
+  
+  adj_wedges_to_vertices += num_wedges;
+  adj_wedges_to_edges += num_wedges;
+  adj_wedges_to_cells += num_wedges;
+
+  adj_vertices_to_corners += len_vertices_to_cells;
+  adj_edges_to_corners += 2 * len_edges_to_cells;
+  adj_cells_to_corners += len_cells_to_vertices;
+
+  adj_vertices_to_wedges += 2*len_vertices_to_cells;
+  adj_edges_to_wedges += 2 * len_edges_to_cells;
+  adj_cells_to_wedges += 2 * len_cells_to_vertices;
 
   //----------------------------------------------------------------------------
   // add intermediate mappings
