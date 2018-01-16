@@ -39,7 +39,7 @@ using common::test_tolerance;
 using point_2d_t = point<real_t, 2>;
 
 //! the error types used
-using utils::ExceptionNotImplemented;
+//using utils::ExceptionNotImplemented;
 
 //=============================================================================
 //! \brief Test 2d normal operator.
@@ -53,7 +53,8 @@ TEST(normal, 2d)
 
   vector<point_2d_t> simple_points = { {0, 0}, {1, 0} };
   
-  auto result_1 = normal( simple_points );
+  auto result_1 = normal( simple_points[0],
+                          simple_points[1]);
 
   // NOTE: the Google Mock C++ framework could be used to directly
   // check array values in a single statement
