@@ -24,6 +24,7 @@ cinch_install_headers(
 cinch_add_unit(test_geom
     SOURCES 
       test/centroid.cc
+      test/normal.cc
       shapes/test/shapes.cc
 )
 
