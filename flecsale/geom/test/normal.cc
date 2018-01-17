@@ -103,3 +103,35 @@ TEST(normal, 3dResultShape)
   ASSERT_EQ( 3, result.size());
 
 } // TEST
+
+//=============================================================================
+//! \brief Test 3d normal operator calculation result values.
+//=============================================================================
+TEST(normal, 3dCalculation)
+{
+
+  // The 3D vector normal may be obtained as
+  // the cross product of the input vectors
+  // the numpy.cross implementation was used
+  // to generate the expected values in this
+  // test
+
+  vector<point_3d_t> simple_points = { {1, 2, 3}, {4, 5, 6} };
+  vector<point_3d_t> messy_points = { {-9009.201, 177.80001, 55.2601},
+                                      {15.0001, 15.9, -999.21} };
+
+  auto result_1 = normal( simple_points[0],
+                          simple_points[1]);
+
+  auto result_2 = normal( messy_points[0],
+                          messy_points[1]);
+
+  ASSERT_NEAR( -3, result_1[0], test_tolerance ) << " 3D normal calculation wrong ";
+  ASSERT_NEAR( 6, result_1[1], test_tolerance ) << " 3D normal calculation wrong ";
+  ASSERT_NEAR( -3, result_1[2], test_tolerance ) << " 3D normal calculation wrong ";
+
+  ASSERT_NEAR( -178538.1835821, result_2[0], 1e-5 ) << " 3D normal calculation wrong ";
+  ASSERT_NEAR( -9001254.82418399, result_2[1], 1e-5 ) << " 3D normal calculation wrong ";
+  ASSERT_NEAR( -145913.31383, result_2[2], 1e-5 ) << " 3D normal calculation wrong ";
+
+} // TEST
