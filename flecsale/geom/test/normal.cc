@@ -42,9 +42,9 @@ using point_2d_t = point<real_t, 2>;
 //using utils::ExceptionNotImplemented;
 
 //=============================================================================
-//! \brief Test 2d normal operator.
+//! \brief Test 2d normal operator calculation result values.
 //=============================================================================
-TEST(normal, 2d) 
+TEST(normal, 2dCalculation)
 {
 
   // 2D normal is (-dy, dx), (dy, -dx)
@@ -62,5 +62,22 @@ TEST(normal, 2d)
   // For now, index array data directly
   ASSERT_NEAR( 0.0, result_1[0], test_tolerance ) << " 2D normal calculation wrong ";
   ASSERT_NEAR( 1.0, result_1[1], test_tolerance ) << " 2D normal calculation wrong ";
+
+} // TEST
+
+/* Check that 2D normal calculation result has the
+ * expected shape */
+
+TEST(normal, 2dResultShape)
+{
+  // (-dy, dx) is returned by normal with 2D input
+  // Expecting 1 row with 2 columns in the object
+  // returned
+  vector<point_2d_t> simple_points = { {0, 0}, {1, 0} };
+
+  auto result = normal( simple_points[0],
+                        simple_points[1]);
+
+  ASSERT_EQ( 2, result.size());
 
 } // TEST
