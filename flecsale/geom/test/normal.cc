@@ -52,16 +52,19 @@ TEST(normal, 2dCalculation)
   // the first of the above values
 
   vector<point_2d_t> simple_points = { {0, 0}, {1, 0} };
+  vector<point_2d_t> messy_points = { {-15, 73.1}, {27, 199.2} };
   
   auto result_1 = normal( simple_points[0],
                           simple_points[1]);
 
-  // NOTE: the Google Mock C++ framework could be used to directly
-  // check array values in a single statement
-  // see: https://stackoverflow.com/a/2797990/2942522
-  // For now, index array data directly
+  auto result_2 = normal( messy_points[0],
+                          messy_points[1]);
+
   ASSERT_NEAR( 0.0, result_1[0], test_tolerance ) << " 2D normal calculation wrong ";
   ASSERT_NEAR( 1.0, result_1[1], test_tolerance ) << " 2D normal calculation wrong ";
+
+  ASSERT_NEAR( -126.1, result_2[0], test_tolerance ) << " 2D normal calculation wrong ";
+  ASSERT_NEAR( 42, result_2[1], test_tolerance ) << " 2D normal calculation wrong ";
 
 } // TEST
 
