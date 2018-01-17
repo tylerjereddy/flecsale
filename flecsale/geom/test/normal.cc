@@ -39,9 +39,6 @@ using common::test_tolerance;
 using point_2d_t = point<real_t, 2>;
 using point_3d_t = point<real_t, 3>;
 
-//! the error types used
-//using utils::ExceptionNotImplemented;
-
 //=============================================================================
 //! \brief Test 2d normal operator calculation result values.
 //=============================================================================
