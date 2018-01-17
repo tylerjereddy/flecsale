@@ -37,6 +37,7 @@ using common::test_tolerance;
 
 //! the point types
 using point_2d_t = point<real_t, 2>;
+using point_3d_t = point<real_t, 3>;
 
 //! the error types used
 //using utils::ExceptionNotImplemented;
@@ -82,5 +83,23 @@ TEST(normal, 2dResultShape)
                         simple_points[1]);
 
   ASSERT_EQ( 2, result.size());
+
+} // TEST
+
+/* Check that 3D normal calculation result has the
+ * expected shape */
+
+TEST(normal, 3dResultShape)
+{
+  // Expecting 3 columns in the returned cross
+  // product vector produced by normal given 3D input
+  // points
+
+  vector<point_3d_t> input_points = { {1, 2, 3}, {4, 5, 6} };
+
+  auto result = normal( input_points[0],
+                        input_points[1]);
+
+  ASSERT_EQ( 3, result.size());
 
 } // TEST
