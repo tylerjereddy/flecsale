@@ -178,6 +178,28 @@ auto color_entity(
   entity_color_info.ghost = entities.ghost.size();
 }
 
+// 2D and 3D versions of create_cells function templates
+// both use identical procedures to create vertices
+template<
+  typename MESH_DEFINITION,
+  typename MESH_TYPE
+>
+void vertex_creation ( auto vertices,
+                       MESH_TYPE && mesh,
+                       MESH_DEFINITION && mesh_def,
+                       auto vertex_lid_to_mid)
+{
+  using mesh_t = typename std::decay_t< MESH_TYPE >;
+  using point_t = typename mesh_t::point_t;
+
+  for(auto & vm: vertex_lid_to_mid) {
+    // get the point
+    const auto & p = mesh_def.template vertex<point_t>( vm.second );
+    // now create it
+    auto v = mesh.create_vertex( p );
+    vertices.emplace_back(v);
+  } // for
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Helper function to create the cells
@@ -236,13 +258,10 @@ void create_cells( MESH_DEFINITION && mesh_def, MESH_TYPE && mesh )
   std::vector< vertex_t * > vertices;
   vertices.reserve( vertex_lid_to_mid.size() );
 
-  for(auto & vm: vertex_lid_to_mid) { 
-    // get the point
-    const auto & p = mesh_def.template vertex<point_t>( vm.second );
-    // now create it
-    auto v = mesh.create_vertex( p );
-    vertices.emplace_back(v);
-  } // for vertices
+  vertex_creation ( vertices,
+                    mesh,
+                    mesh_def,
+                    vertex_lid_to_mid);
 
   //----------------------------------------------------------------------------
   // create the cells
@@ -330,14 +349,10 @@ void create_cells( MESH_DEFINITION && mesh_def, MESH_TYPE && mesh )
   std::vector< vertex_t * > vertices;
   vertices.reserve( vertex_lid_to_mid.size() );
 
-  for(auto & vm: vertex_lid_to_mid) { 
-    // get the point
-    const auto & p = mesh_def.template vertex<point_t>( vm.second );
-    // now create it
-    auto v = mesh.create_vertex( p );
-    vertices.emplace_back(v);
-  } // for vertices
-
+  vertex_creation ( vertices,
+                    mesh,
+                    mesh_def,
+                    vertex_lid_to_mid);
 
   //----------------------------------------------------------------------------
   // create the faces
